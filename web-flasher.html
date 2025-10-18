@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOT-CycleControl Web Flasher</title>
+    <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            color: #ff6b35;
+            text-shadow: 2px 2px 10px rgba(255, 107, 53, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1em;
+            color: #4ecdc4;
+            font-weight: 300;
+        }
+        
+        .flash-section {
+            background: rgba(78, 205, 196, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 2px solid rgba(78, 205, 196, 0.3);
+            text-align: center;
+        }
+        
+        esp-web-install-button {
+            display: inline-block;
+            margin: 20px 0;
+        }
+        
+        esp-web-install-button::part(button) {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 18px 40px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+            transition: all 0.3s;
+        }
+        
+        esp-web-install-button::part(button):hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 107, 53, 0.6);
+        }
+        
+        .info-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid #4ecdc4;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .info-box h3 {
+            color: #4ecdc4;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .info-box li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .info-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+        
+        .warning-box {
+            background: rgba(255, 107, 53, 0.1);
+            border-left: 4px solid #ff6b35;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .warning-box h3 {
+            color: #ff6b35;
+            margin-bottom: 10px;
+        }
+        
+        .warning-box p {
+            color: #ffb380;
+            line-height: 1.6;
+        }
+        
+        .steps {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .steps h3 {
+            color: #4ecdc4;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+        
+        .step-number {
+            background: #ff6b35;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-content strong {
+            color: #4ecdc4;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .footer a {
+            color: #4ecdc4;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        
+        .footer a:hover {
+            color: #6ee0d7;
+            text-decoration: underline;
+        }
+        
+        .requirements {
+            background: rgba(78, 205, 196, 0.05);
+            border: 1px solid rgba(78, 205, 196, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .requirements h4 {
+            color: #4ecdc4;
+            margin-bottom: 15px;
+        }
+        
+        .requirements ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .requirements li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .requirements li:before {
+            content: "⚙️";
+            position: absolute;
+            left: 0;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .container {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ MOT-CycleControl</h1>
+            <div class="subtitle">Web Flasher - Install Firmware via Browser</div>
+        </header>
+
+        <div class="warning-box">
+            <h3>⚠️ Safety Warning</h3>
+            <p><strong>This is a MOT spot welder controller.</strong> Microwave Oven Transformers (MOT) produce extremely high current (>1000A) at dangerous voltages. Improper use can cause fires, explosions, or fatal electric shock. Only qualified personnel should work with mains voltage equipment. Use appropriate RCD, fuses, and enclosures.</p>
+        </div>
+
+        <div class="requirements">
+            <h4>📋 Requirements</h4>
+            <ul>
+                <li>Chrome, Edge, or Opera browser (Web Serial API support)</li>
+                <li>USB cable (data cable, not charge-only)</li>
+                <li>ESP32 DevKit board</li>
+                <li>Driver installed (CP2102/CH340 depending on your board)</li>
+            </ul>
+        </div>
+
+        <div class="flash-section">
+            <h2 style="color: #4ecdc4; margin-bottom: 20px;">🔥 Flash Firmware</h2>
+            <p style="margin-bottom: 20px; font-size: 1.1em;">Click the button below to install MOT-CycleControl firmware to your ESP32.</p>
+            
+            <!-- ESP Web Tools Install Button -->
+            <esp-web-install-button
+                manifest="./manifest.json"
+                erase-first
+            >
+                <button slot="activate">Install Firmware</button>
+                <span slot="unsupported">
+                    ❌ Web Serial not supported in this browser.<br>
+                    Please use Chrome, Edge, or Opera.
+                </span>
+                <span slot="not-allowed">
+                    ❌ USB access denied. Check browser permissions.
+                </span>
+            </esp-web-install-button>
+            
+            <p style="margin-top: 15px; font-size: 0.95em; color: #aaa;">
+                ℹ️ "Erase First" is enabled - all previous data will be wiped
+            </p>
+        </div>
+
+        <div class="steps">
+            <h3>📖 Installation Steps</h3>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <strong>Connect ESP32</strong>
+                    Plug your ESP32 DevKit into your computer via USB cable. Ensure it's a data cable (not charge-only).
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <strong>Click "Install Firmware"</strong>
+                    Click the orange button above. A browser popup will appear asking to select a serial port.
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <strong>Select COM Port</strong>
+                    Choose your ESP32's COM port (usually labeled "CP2102" or "CH340"). Click "Connect".
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <strong>Wait for Flash</strong>
+                    The process takes 30-60 seconds. Do NOT disconnect during flashing. Progress bar will show status.
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <strong>Connect to Wi-Fi</strong>
+                    After flashing, ESP32 will reboot. Connect to Wi-Fi AP: <strong>MOT-CycleControl</strong> / <strong>motspotweld</strong>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <strong>Access Web UI</strong>
+                    Open browser and go to: <strong>http://192.168.4.1</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>✨ Features</h3>
+            <ul>
+                <li>Cycle-based timing (50 Hz AC → 1 cycle = 20 ms)</li>
+                <li>HELD HIGH signal for SSR Zero-Cross (fixes "no current" issue)</li>
+                <li>Single & Double Pulse modes (P1 + GAP + P2)</li>
+                <li>Material presets (Pure Nickel, Ni-Plated, Copper)</li>
+                <li>Physical UI (OLED + Rotary Encoder)</li>
+                <li>Web UI (SoftAP + REST API)</li>
+                <li>OTA firmware updates</li>
+                <li>Re-entrancy & cooldown protection</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h3>🔌 Pin Configuration</h3>
+            <ul>
+                <li><strong>SSR Control:</strong> GPIO26 (via 5V rail)</li>
+                <li><strong>Encoder CLK:</strong> GPIO32</li>
+                <li><strong>Encoder DT:</strong> GPIO33</li>
+                <li><strong>Encoder SW:</strong> GPIO25</li>
+                <li><strong>OLED SDA:</strong> GPIO21</li>
+                <li><strong>OLED SCL:</strong> GPIO22 (I2C addr 0x3C)</li>
+                <li><strong>Trigger Button:</strong> GPIO27 (optional)</li>
+            </ul>
+        </div>
+
+        <div class="warning-box">
+            <h3>⚡ SSR Wiring Notes</h3>
+            <p>
+                <strong>CRITICAL:</strong> SSR input is driven directly from ESP32 board's 5V rail (NOT 3.3V). 
+                Verify your SSR input current is <12mA. GPIO26 controls the 5V path via external board routing. 
+                SSR Zero-Cross type required (NOT Random-Fire/Phase-Angle). Test with 12V bulb before connecting MOT to mains!
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>
+                MOT-CycleControl v1.0.0 | 
+                <a href="https://github.com/Violensia28/Claude-spot" target="_blank">GitHub Repository</a> | 
+                <a href="http://192.168.4.1" target="_blank">Web UI (after flashing)</a>
+            </p>
+            <p style="margin-top: 10px; font-size: 0.85em;">
+                Built with ❤️ for safe & precise spot welding
+            </p>
+        </div>
+    </div>
+</body>
+</html>
