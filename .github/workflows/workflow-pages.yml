@@ -1,0 +1,145 @@
+name: Deploy Web Flasher to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'web-flasher.html'
+      - 'manifest.json'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Pages
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Create Pages Directory
+        run: |
+          mkdir -p _site
+          cp web-flasher.html _site/index.html
+          cp manifest.json _site/manifest.json
+      
+      - name: Copy Latest Firmware (if exists)
+        run: |
+          if [ -f firmware.bin ]; then
+            cp firmware.bin _site/firmware.bin
+            echo "Firmware copied to Pages"
+          else
+            echo "No firmware.bin found, skipping"
+          fi
+        continue-on-error: true
+      
+      - name: Generate Download Page
+        run: |
+          cat > _site/download.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>MOT-CycleControl - Download Firmware</title>
+              <style>
+                  body {
+                      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+                      color: #fff;
+                      min-height: 100vh;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      padding: 20px;
+                  }
+                  .container {
+                      max-width: 600px;
+                      background: rgba(255, 255, 255, 0.08);
+                      border-radius: 20px;
+                      padding: 40px;
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                      backdrop-filter: blur(10px);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      text-align: center;
+                  }
+                  h1 {
+                      color: #ff6b35;
+                      font-size: 2.5em;
+                      margin-bottom: 20px;
+                  }
+                  .download-btn {
+                      display: inline-block;
+                      margin: 20px 10px;
+                      padding: 18px 40px;
+                      background: linear-gradient(135deg, #ff6b35, #f7931e);
+                      color: white;
+                      text-decoration: none;
+                      border-radius: 12px;
+                      font-weight: bold;
+                      font-size: 1.2em;
+                      transition: all 0.3s;
+                      box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+                  }
+                  .download-btn:hover {
+                      transform: translateY(-3px);
+                      box-shadow: 0 12px 35px rgba(255, 107, 53, 0.6);
+                  }
+                  .link {
+                      color: #4ecdc4;
+                      text-decoration: none;
+                      font-weight: 600;
+                  }
+                  .link:hover {
+                      text-decoration: underline;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>⚡ MOT-CycleControl</h1>
+                  <p style="font-size: 1.2em; margin: 20px 0;">Download Firmware & Tools</p>
+                  
+                  <a href="./index.html" class="download-btn">🔥 Web Flasher</a>
+                  <a href="https://github.com/YOUR-USERNAME/MOT-CycleControl/releases" class="download-btn">📦 Releases</a>
+                  
+                  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                      <p><a href="https://github.com/YOUR-USERNAME/MOT-CycleControl" class="link">GitHub Repository</a></p>
+                      <p><a href="https://github.com/YOUR-USERNAME/MOT-CycleControl/blob/main/README.md" class="link">Documentation</a></p>
+                  </div>
+              </div>
+          </body>
+          </html>
+          EOF
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
